@@ -47,7 +47,7 @@ public final class Insert<T> extends Operation implements InsertBuilder<T> {
     private void fields() {
         Arrays.stream(this.clazz.getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(lpz.utils.dao.annotations.Field.class)
-                                 && field.getAnnotation(lpz.utils.dao.annotations.Field.class).insertable())
+                        && field.getAnnotation(lpz.utils.dao.annotations.Field.class).insertable())
                 .forEach(field -> {
                     String fieldName = Helper.getFieldName(field);
                     this.sql.append(fieldName).append(", ");
@@ -59,18 +59,13 @@ public final class Insert<T> extends Operation implements InsertBuilder<T> {
     private void values(final T entity) {
         List<Field> fields = Arrays.stream(this.clazz.getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(lpz.utils.dao.annotations.Field.class)
-                                 && field.getAnnotation(lpz.utils.dao.annotations.Field.class).insertable()
-                                 && field.trySetAccessible())
+                        && field.getAnnotation(lpz.utils.dao.annotations.Field.class).insertable()
+                        && field.trySetAccessible())
                 .toList();
 
         for (var field : fields) {
-            // HOTFIX - Explicit UUID cast
-            // TODO - Add generic explicit cast
-            if (field.getType().equals(UUID.class)) {
-                sql.append("?::uuid, ");
-            } else {
-                sql.append("?, ");
-            }
+            lpz.utils.dao.postgresql.helper.Helper.addParam(this.sql, field.getType());
+            this.sql.append(", ");
             try {
                 this.values.add(field.get(entity));
             } catch (IllegalAccessException e) {

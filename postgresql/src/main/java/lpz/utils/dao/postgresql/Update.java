@@ -62,14 +62,8 @@ public final class Update<T> extends Operation implements UpdateBuilder<T> {
                 )
                 .forEach(field -> {
                     final String fieldName = Helper.getFieldName(field);
-                    if (field.getType().equals(UUID.class)){
-                        this.where.append(fieldName).append(" = ?::uuid AND ");
-                    } else {
-                        this.where.append(fieldName).append(" = ? AND ");
-                    }
-
                     try {
-                        this.values.add(field.get(entity));
+                        this.where(fieldName).equal(field.get(entity));
                     } catch (IllegalAccessException e) {
                         logger.severe(e.getMessage());
                     }
@@ -96,7 +90,9 @@ public final class Update<T> extends Operation implements UpdateBuilder<T> {
                     }
                 })
                 .forEach(field -> {
-                    this.sql.append(Helper.getFieldName(field)).append(" = ?, ");
+                    this.sql.append(Helper.getFieldName(field));
+                    lpz.utils.dao.postgresql.helper.Helper.addParam(this.sql, field.getType());
+                    this.sql.append(", ");
 
                     try {
                         this.values.add(field.get(entity));
