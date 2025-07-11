@@ -22,4 +22,19 @@ class WhereTest {
         assertEquals(1, op.values.size());
         assertEquals(id, op.values.getFirst());
     }
+
+    @Test
+    void notEqual() {
+        final UUID id = UUID.randomUUID();
+        Where<Select<TestEntity>> where = new Where<>("id", new Select<>(TestEntity.class, null));
+
+        final String expected = "WHERE id != ?::uuid ";
+
+        Select<TestEntity> op = assertDoesNotThrow(() -> where.notEqual(id));
+
+        assertNotNull(op);
+        assertEquals(expected, op.where.toString());
+        assertEquals(1, op.values.size());
+        assertEquals(id, op.values.getFirst());
+    }
 }
