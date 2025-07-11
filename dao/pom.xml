@@ -12,6 +12,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
+
+        <sonar.organization>luanpozzobon</sonar.organization>
+        <sonar.projectKey>luanpozzobon_utils.dao</sonar.projectKey>
+        <sonar.moduleKey>dao</sonar.moduleKey>
+        <sonar.projectName>utils.dao</sonar.projectName>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
 
     <distributionManagement>
@@ -22,4 +28,15 @@
         </repository>
     </distributionManagement>
 
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.sonarsource.scanner.maven</groupId>
+                    <artifactId>sonar-maven-plugin</artifactId>
+                    <version>5.1.0.4751</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 </project>
