@@ -37,12 +37,12 @@ jobs:
           
       - name: Build and analyze `dao`
         env:
-          SONAR_TOKEN: ${{ secrets:SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         working-directory: ./dao
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
 
       - name: Build and analyze `postgresql`
         env:
-          SONAR_TOKEN: ${{ secrets:SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         working-directory: ./postgresql
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
