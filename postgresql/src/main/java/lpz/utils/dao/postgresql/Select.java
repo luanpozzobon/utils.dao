@@ -13,11 +13,20 @@ import java.sql.SQLException;
 import java.util.*;
 
 public final class Select<T> extends Operation implements SelectBuilder<T> {
+    private static final int MIN_LIMIT = 1;
+    private static final int NO_LIMIT = 0;
+    private static final int DEFAULT_LIMIT = 50;
+
+    private static final int MIN_OFFSET = 0;
+
     private final Connection connection;
     private final Class<T> clazz;
     private final String tableName;
 
     private final StringBuilder sql;
+
+    protected Integer limit = null;
+    protected Integer offset = null;
 
     protected Select(final Class<T> clazz,
                      final Connection connection) {
@@ -56,8 +65,48 @@ public final class Select<T> extends Operation implements SelectBuilder<T> {
         return new Where<>(field, this);
     }
 
+    public Select<T> limit(final int limit) {
+        this.limit = Math.max(MIN_LIMIT, limit);
+
+        return this;
+    }
+
+    public Select<T> limitless() {
+        this.limit = NO_LIMIT;
+
+        return this;
+    }
+
+    public Select<T> offset(final int offset) {
+        this.offset = Math.max(MIN_OFFSET, offset);
+
+        return this;
+    }
+
+    public Select<T> page(final int page, final int pageSize) {
+        this.limit = pageSize;
+        this.offset = Math.max(MIN_OFFSET, (page - 1) * this.limit);
+
+        return this;
+    }
+
+    public Select<T> page(final int page) {
+        if (this.limit == null) this.limit = DEFAULT_LIMIT;
+
+        this.offset = Math.max(MIN_OFFSET, (page - 1) * this.limit);
+
+        return this;
+    }
+
     private PreparedStatement prepareStatement() throws SQLException {
-        return SQLStatement.prepare(this.connection, (this.sql.append(this.where.toString())), this.values);
+        if (this.where != null) this.sql.append(this.where).append(" ");
+
+        if (this.limit == null) this.limit = DEFAULT_LIMIT;
+        if (this.limit > NO_LIMIT) this.sql.append("LIMIT ").append(this.limit).append(" ");
+
+        if (this.offset != null) this.sql.append("OFFSET ").append(this.offset).append(" ");
+
+        return SQLStatement.prepare(this.connection, (this.sql), this.values);
     }
 
     public Result<T> execute() throws SQLException {
@@ -68,5 +117,9 @@ public final class Select<T> extends Operation implements SelectBuilder<T> {
         } catch (InstantiationException e) {
             throw new RuntimeException("Your entity must be instantiable");
         }
+    }
+
+    protected String getSQL() {
+        return this.sql.toString();
     }
 }
