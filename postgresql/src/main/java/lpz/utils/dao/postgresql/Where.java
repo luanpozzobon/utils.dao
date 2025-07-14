@@ -116,7 +116,7 @@ public class Where<T extends IOperation> implements WhereBuilder<T> {
             this.clause.append(", ");
         });
 
-        Helper.replaceFromLast(",", ")", this.clause);
+        Helper.replaceFromLast(",", ") ", this.clause);
         this.operation.where(clause.toString(), values.toArray());
 
         return operation;

@@ -126,4 +126,8 @@ public final class Update<T> extends Operation implements UpdateBuilder<T> {
     public Result<T> execute(List<T> entities) throws SQLException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
+
+    protected String getSQL() {
+        return this.sql.toString();
+    }
 }

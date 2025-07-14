@@ -20,7 +20,8 @@ public final class Insert<T> extends Operation implements InsertBuilder<T> {
     private final Class<T> clazz;
 
     private final StringBuilder sql;
-    private boolean returning;
+
+    protected boolean returning;
 
     protected Insert(final Class<T> clazz,
                      final Connection connection) {
@@ -132,5 +133,9 @@ public final class Insert<T> extends Operation implements InsertBuilder<T> {
         } catch (InstantiationException e) {
             throw new RuntimeException("Your entity must be instantiable");
         }
+    }
+
+    protected String getSQL() {
+        return this.sql.toString();
     }
 }

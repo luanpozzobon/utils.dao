@@ -98,4 +98,8 @@ public final class Delete<T> extends Operation implements DeleteBuilder<T> {
             throw new RuntimeException("Your entity must be instantiable");
         }
     }
+
+    protected String getSQL() {
+        return this.sql.toString();
+    }
 }
