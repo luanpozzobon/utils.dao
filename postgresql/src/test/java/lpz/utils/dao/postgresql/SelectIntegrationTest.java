@@ -56,8 +56,7 @@ class SelectIntegrationTest {
                 final TestEntity e = new TestEntity(id, FIELD1, FIELD2, FIELD3, FIELD4, FIELD5, FIELD6, FIELD7, FIELD8, FIELD9);
 
                 final String sql = "INSERT INTO test " +
-                        "(id, field1, field2, field3, field4, 
-                        field5, field6, field7, field8, field9) " +
+                        "(id, field1, field2, field3, field4, field5, field6, field7, field8, field9) " +
                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
                 final java.sql.PreparedStatement preparedStatement = connection.prepareStatement(sql);
