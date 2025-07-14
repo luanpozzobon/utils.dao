@@ -45,21 +45,10 @@ public final class Update<T> extends Operation implements UpdateBuilder<T> {
     }
 
     private void where(final T entity) {
-        this.where = new StringBuilder("WHERE ");
-
         Arrays.stream(this.clazz.getDeclaredFields())
-                .filter(field -> {
-                            try {
-                                return field.isAnnotationPresent(lpz.utils.dao.annotations.Field.class)
-                                        && field.getAnnotation(lpz.utils.dao.annotations.Field.class).primaryKey()
-                                        && field.trySetAccessible()
-                                        && field.get(entity) != null;
-                            } catch (IllegalAccessException e) {
-                                logger.severe(e.getMessage());
-                                return false;
-                            }
-                        }
-                )
+                .filter(field -> field.isAnnotationPresent(lpz.utils.dao.annotations.Field.class)
+                        && field.getAnnotation(lpz.utils.dao.annotations.Field.class).primaryKey()
+                        && field.trySetAccessible())
                 .forEach(field -> {
                     final String fieldName = Helper.getFieldName(field);
                     try {
@@ -68,8 +57,6 @@ public final class Update<T> extends Operation implements UpdateBuilder<T> {
                         logger.severe(e.getMessage());
                     }
                 });
-
-        Helper.replaceFromLast("AND", "", this.where);
     }
 
     private PreparedStatement prepareStatement() throws SQLException {
@@ -77,11 +64,18 @@ public final class Update<T> extends Operation implements UpdateBuilder<T> {
     }
 
     private void values(final T entity) {
+        List<Object> temp = null;
+        if (!this.values.isEmpty()) {
+            temp = List.copyOf(this.values);
+            this.values.clear();
+        }
+
         Arrays.stream(this.clazz.getDeclaredFields())
                 .filter(field -> {
                     try {
                         return field.isAnnotationPresent(lpz.utils.dao.annotations.Field.class)
                                 && field.getAnnotation(lpz.utils.dao.annotations.Field.class).updatable()
+                                && !field.getAnnotation(lpz.utils.dao.annotations.Field.class).primaryKey()
                                 && field.trySetAccessible()
                                 && field.get(entity) != null;
                     } catch (IllegalAccessException e) {
@@ -90,7 +84,7 @@ public final class Update<T> extends Operation implements UpdateBuilder<T> {
                     }
                 })
                 .forEach(field -> {
-                    this.sql.append(Helper.getFieldName(field));
+                    this.sql.append(Helper.getFieldName(field)).append(" = ");
                     lpz.utils.dao.postgresql.helper.Helper.addParam(this.sql, field.getType());
                     this.sql.append(", ");
 
@@ -102,6 +96,9 @@ public final class Update<T> extends Operation implements UpdateBuilder<T> {
                 });
 
         Helper.replaceFromLast(",", " ", this.sql);
+
+        if (temp != null && !temp.isEmpty())
+            this.values.addAll(temp);
     }
 
     @Override

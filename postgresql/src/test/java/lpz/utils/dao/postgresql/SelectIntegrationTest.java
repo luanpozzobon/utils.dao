@@ -55,23 +55,8 @@ class SelectIntegrationTest {
                 final UUID id = UUID.randomUUID();
                 final TestEntity e = new TestEntity(id, FIELD1, FIELD2, FIELD3, FIELD4, FIELD5, FIELD6, FIELD7, FIELD8, FIELD9);
 
-                final String sql = "INSERT INTO test " +
-                        "(id, field1, field2, field3, field4, field5, field6, field7, field8, field9) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-                final java.sql.PreparedStatement preparedStatement = connection.prepareStatement(sql);
-                preparedStatement.setObject(1, id);
-                preparedStatement.setString(2, FIELD1);
-                preparedStatement.setInt(3, FIELD2);
-                preparedStatement.setLong(4, FIELD3);
-                preparedStatement.setFloat(5, FIELD4);
-                preparedStatement.setDouble(6, FIELD5);
-                preparedStatement.setBoolean(7, FIELD6);
-                preparedStatement.setBigDecimal(8, FIELD7);
-                preparedStatement.setByte(9, FIELD8);
-                preparedStatement.setDate(10, java.sql.Date.valueOf(FIELD9));
-                preparedStatement.execute();
-                preparedStatement.close();
+                new CRUDBuilderFactory(connection).insert(TestEntity.class)
+                        .execute(e);
             }
 
             final String sql = "INSERT INTO test (id) VALUES (?)";
@@ -117,7 +102,6 @@ class SelectIntegrationTest {
     void shouldSelect50Entities() {
         Select<TestEntity> select = new Select<>(TestEntity.class, connection);
 
-        System.out.println(select.getSQL());
         Result<TestEntity> result = assertDoesNotThrow(select::execute);
 
         assertNotNull(result);

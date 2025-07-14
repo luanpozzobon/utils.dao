@@ -1,34 +1,23 @@
 package lpz.utils.dao.postgresql;
 
-import lpz.utils.dao.InsertBuilder;
 import lpz.utils.dao.Result;
+import lpz.utils.dao.UpdateBuilder;
 import org.junit.jupiter.api.AfterAll;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.PostgreSQLContainer;
 
-import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.time.LocalDate;
-import java.util.List;
+import java.sql.SQLException;
 import java.util.UUID;
 
-class InsertIntegrationTest {
+import static org.junit.jupiter.api.Assertions.*;
+
+class UpdateIntegrationTest {
     private static final UUID ID = UUID.randomUUID();
     private static final String FIELD1 = "field1";
-    private static final Integer FIELD2 = 1;
-    private static final Long FIELD3 = 1L;
-    private static final Float FIELD4 = 1.0F;
-    private static final Double FIELD5 = 1.0D;
-    private static final Boolean FIELD6 = true;
-    private static final BigDecimal FIELD7 = new BigDecimal(10);
-    private static final Byte FIELD8 = 1;
-    private static final LocalDate FIELD9 = LocalDate.now();
 
     private static Connection connection;
 
@@ -38,6 +27,8 @@ class InsertIntegrationTest {
                     .withUsername("test-user")
                     .withPassword("test-password")
                     .withInitScript("schema.sql");
+
+    private static UUID id = UUID.randomUUID();
 
     @BeforeAll
     static void beforeAll() {
@@ -67,6 +58,12 @@ class InsertIntegrationTest {
             final java.sql.PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.execute();
             preparedStatement.close();
+
+            final TestEntity e = new TestEntity();
+            e.setId(ID);
+
+            new CRUDBuilderFactory(connection).insert(TestEntity.class)
+                    .execute(e);
         } catch (Exception e) {
             System.err.println("Error deleting data from database: " + e.getMessage());
             e.printStackTrace();
@@ -90,45 +87,45 @@ class InsertIntegrationTest {
     }
 
     @Test
-    void shouldInsertEntity() {
-        TestEntity entity = new TestEntity(ID, FIELD1, FIELD2, FIELD3, FIELD4, FIELD5, FIELD6, FIELD7, FIELD8, FIELD9);
-        InsertBuilder<TestEntity> insert = new CRUDBuilderFactory(connection)
-                .insert(TestEntity.class)
-                .returning();
+    void shouldUpdateEntity() throws SQLException {
+        final TestEntity dbEntity = new CRUDBuilderFactory(connection).select(TestEntity.class)
+                .where("id").equal(ID)
+                .execute().entities().getFirst();
+        dbEntity.setField1(FIELD1);
 
-        Result<TestEntity> result = assertDoesNotThrow(() -> insert.execute(entity));
+        final Update<TestEntity> update = new Update<>(TestEntity.class, connection);
+
+        Result<TestEntity> result = assertDoesNotThrow(() -> update.execute(dbEntity));
 
         assertNotNull(result);
         assertEquals(1, result.lines());
 
-        TestEntity savedEntity = result.entities().getFirst();
+        final TestEntity updated = new CRUDBuilderFactory(connection).select(TestEntity.class)
+                .where("id").equal(ID)
+                .execute().entities().getFirst();
 
-        assertNotNull(savedEntity);
-        assertEquals(ID, savedEntity.getId());
-        assertEquals(FIELD1, savedEntity.getField1());
-        assertEquals(FIELD2, savedEntity.getField2());
-        assertEquals(FIELD3, savedEntity.getField3());
-        assertEquals(FIELD4, savedEntity.getField4());
-        assertEquals(FIELD5, savedEntity.getField5());
-        assertEquals(FIELD6, savedEntity.getField6());
-        assertEquals(FIELD7, savedEntity.getField7());
-        assertEquals(FIELD8, savedEntity.getField8());
-        assertEquals(FIELD9, savedEntity.getField9());
+        assertEquals(FIELD1, updated.getField1());
     }
 
     @Test
-    void shouldInsertListOfEntities() {
-        final TestEntity entity1 = new TestEntity(ID, FIELD1, FIELD2, FIELD3, FIELD4, FIELD5, FIELD6, FIELD7, FIELD8, FIELD9);
-        final UUID id = UUID.randomUUID();
-        final TestEntity entity2 = new TestEntity(id, FIELD1, FIELD2, FIELD3, FIELD4, FIELD5, FIELD6, FIELD7, FIELD8, FIELD9);
-        final List<TestEntity> entities = List.of(entity1, entity2);
+    void shouldUpdateWithWhere() throws SQLException {
+        final TestEntity dbEntity = new CRUDBuilderFactory(connection).select(TestEntity.class)
+                .where("id").equal(ID)
+                .execute().entities().getFirst();
+        dbEntity.setField1(FIELD1);
 
-        InsertBuilder<TestEntity> insert = new CRUDBuilderFactory(connection)
-                .insert(TestEntity.class);
+        final UpdateBuilder<TestEntity> update = new Update<>(TestEntity.class, connection)
+                .where("id").equal(ID);
 
-        Result<TestEntity> result = assertDoesNotThrow(() -> insert.execute(entities));
+        Result<TestEntity> result = assertDoesNotThrow(() -> update.execute(dbEntity));
 
         assertNotNull(result);
-        assertEquals(2, result.lines());
+        assertEquals(1, result.lines());
+
+        final TestEntity updated = new CRUDBuilderFactory(connection).select(TestEntity.class)
+                .where("id").equal(ID)
+                .execute().entities().getFirst();
+
+        assertEquals(FIELD1, updated.getField1());
     }
 }
