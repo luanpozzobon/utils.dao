@@ -32,6 +32,11 @@ public abstract class SQLStatement {
 
         int index = 0;
         for (Object p : parameters) {
+            if (p == null) {
+                ParamSetter.setNull(preparedStatement, new Param(++index, p));
+                continue;
+            }
+
             TYPES.getOrDefault(
                     p.getClass(),
                     ParamSetter::setDefault

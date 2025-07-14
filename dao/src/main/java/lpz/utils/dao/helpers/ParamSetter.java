@@ -47,6 +47,10 @@ public abstract class ParamSetter {
         statement.setDate(param.index(), java.sql.Date.valueOf(((LocalDate) param.value())));
     }
 
+    protected static void setNull(PreparedStatement statement, Param param) throws SQLException {
+        statement.setNull(param.index(), java.sql.Types.NULL);
+    }
+
     protected static void setDefault(PreparedStatement statement, Param param) throws SQLException {
         statement.setObject(param.index(), param.value());
     }
