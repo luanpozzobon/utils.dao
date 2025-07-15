@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public sealed abstract class Operation implements IOperation permits Delete, Insert, Select, Update {
+public abstract sealed class Operation implements IOperation permits Delete, Insert, Select, Update {
     protected StringBuilder where;
     protected List<Object> values;
 

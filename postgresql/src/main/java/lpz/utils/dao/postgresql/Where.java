@@ -5,9 +5,11 @@ import lpz.utils.dao.WhereBuilder;
 import lpz.utils.dao.helpers.Helper;
 
 import java.util.List;
-import java.util.UUID;
 
 public class Where<T extends IOperation> implements WhereBuilder<T> {
+    private static final String OPENING_WILDCARD = " '%' || ";
+    private static final String CLOSING_WILDCARD = " || '%' ";
+
     private final String field;
     private final T operation;
     private final StringBuilder clause;
@@ -80,9 +82,9 @@ public class Where<T extends IOperation> implements WhereBuilder<T> {
     }
 
     public T like(final Object value) {
-        this.clause.append(field).append(" LIKE '%' || ");
+        this.clause.append(field).append(" LIKE").append(OPENING_WILDCARD);
         lpz.utils.dao.postgresql.helper.Helper.addParam(this.clause, value.getClass());
-        this.clause.append(" || '%' ");
+        this.clause.append(CLOSING_WILDCARD);
 
         this.operation.where(clause.toString(), value);
 
@@ -90,9 +92,9 @@ public class Where<T extends IOperation> implements WhereBuilder<T> {
     }
 
     public T ilike(final Object value) {
-        this.clause.append(field).append(" ILIKE '%' || ");
+        this.clause.append(field).append(" ILIKE").append(OPENING_WILDCARD);
         lpz.utils.dao.postgresql.helper.Helper.addParam(this.clause, value.getClass());
-        this.clause.append(" || '%' ");
+        this.clause.append(CLOSING_WILDCARD);
 
         this.operation.where(clause.toString(), value);
 
@@ -100,9 +102,9 @@ public class Where<T extends IOperation> implements WhereBuilder<T> {
     }
 
     public T notLike(final Object value) {
-        this.clause.append(field).append(" NOT LIKE '%' || ");
+        this.clause.append(field).append(" NOT LIKE").append(OPENING_WILDCARD);
         lpz.utils.dao.postgresql.helper.Helper.addParam(this.clause, value.getClass());
-        this.clause.append(" || '%' ");
+        this.clause.append(CLOSING_WILDCARD);
 
         this.operation.where(clause.toString(), value);
 

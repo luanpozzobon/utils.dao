@@ -1,6 +1,5 @@
 package lpz.utils.dao.postgresql.helper;
 
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Map;
@@ -8,6 +7,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 public class Helper {
+    private Helper() { }
     private static final Map<Class<?>, Consumer<StringBuilder>> TYPE = Map.of(
             String.class, ParamAdder::addString,
             UUID.class, ParamAdder::addUUID,

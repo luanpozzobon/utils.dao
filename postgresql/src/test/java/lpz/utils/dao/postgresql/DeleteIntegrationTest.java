@@ -27,8 +27,6 @@ class DeleteIntegrationTest {
                     .withPassword("test-password")
                     .withInitScript("schema.sql");
 
-    private static UUID id = UUID.randomUUID();
-
     @BeforeAll
     static void beforeAll() {
         postgreSQLContainer.start();
@@ -107,10 +105,6 @@ class DeleteIntegrationTest {
 
     @Test
     void shouldDeleteWithWhere() throws SQLException {
-        TestEntity dbEntity = new CRUDBuilderFactory(connection).select(TestEntity.class)
-                .where("id").equal(ID)
-                .execute().entities().getFirst();
-
         DeleteBuilder<TestEntity> delete = new Delete<>(TestEntity.class, connection)
                 .where("id").equal(ID);
 

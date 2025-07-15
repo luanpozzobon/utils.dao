@@ -13,7 +13,6 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.logging.Logger;
 
 public final class Update<T> extends Operation implements UpdateBuilder<T> {

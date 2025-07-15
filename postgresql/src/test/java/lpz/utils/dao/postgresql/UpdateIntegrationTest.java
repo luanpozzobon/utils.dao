@@ -28,8 +28,6 @@ class UpdateIntegrationTest {
                     .withPassword("test-password")
                     .withInitScript("schema.sql");
 
-    private static UUID id = UUID.randomUUID();
-
     @BeforeAll
     static void beforeAll() {
         postgreSQLContainer.start();

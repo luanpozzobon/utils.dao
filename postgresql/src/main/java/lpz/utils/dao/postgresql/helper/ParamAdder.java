@@ -1,6 +1,8 @@
 package lpz.utils.dao.postgresql.helper;
 
 public abstract class ParamAdder {
+    private ParamAdder() { }
+
     protected static void addString(StringBuilder sql) {
         sql.append("?::varchar");
     }
