@@ -70,4 +70,34 @@ public interface SelectBuilder<T> extends IOperation {
      * @since 1.1.0
      */
     SelectBuilder<T> page(int page);
+
+    /**
+     *
+     * @since 2.0.0
+     */
+    SelectBuilder<T> leftJoin();
+
+    /**
+     *
+     * @param field
+     *
+     *
+     * @since 2.0.0
+     */
+    SelectBuilder<T> leftJoin(String field);
+
+    /**
+     *
+     * @since 2.0.0
+     */
+    SelectBuilder<T> innerJoin();
+
+    /**
+     *
+     * @param field
+     *
+     *
+     * @since 2.0.0
+     */
+    SelectBuilder<T> innerJoin(String field);
 }
