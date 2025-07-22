@@ -1,6 +1,7 @@
 package lpz.utils.dao.helpers;
 
 import lpz.utils.dao.Result;
+import lpz.utils.dao.annotations.Join;
 import lpz.utils.dao.exceptions.EntityConstructorException;
 import lpz.utils.dao.helpers.consumer.SQLResult;
 
@@ -30,11 +31,26 @@ public abstract class SQLExecutor {
             LocalDate.class, ParamGetter::getLocalDate
     );
 
-    private static <T> T createObject(ResultSet resultSet, Class<T> clazz) throws NoSuchMethodException, InstantiationException, SQLException {
+    private static <T> T createObject(final List<String> primaryKeys,
+                                      final Map<List<Object>, T> cache,
+                                      final ResultSet resultSet,
+                                      final Class<T> clazz,
+                                      final boolean useQualifiedName
+    ) throws NoSuchMethodException, InstantiationException, SQLException {
+        // TODO - Verify if entity exists in cache!
+        List<Object> primaryKeyValues = new ArrayList<>();
+        for (String primaryKey : primaryKeys) {
+
+            Object value = ParamGetter.getDefault(resultSet, primaryKey);
+            primaryKeyValues.add(value);
+        }
+
+        if (cache.containsKey(primaryKeyValues)) return cache.get(primaryKeyValues);
+
         List<Field> fields = Arrays.stream(clazz.getDeclaredFields())
                 .filter(
                         field -> field.isAnnotationPresent(lpz.utils.dao.annotations.Field.class)
-                                 && field.trySetAccessible()
+                                && field.trySetAccessible()
                 ).toList();
 
         T entity;
@@ -43,8 +59,14 @@ public abstract class SQLExecutor {
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new EntityConstructorException("Your entity doesn't have a Non-Args constructor, or it threw an exception!", e);
         }
+
         for (var field : fields) {
             String fieldName = Helper.getFieldName(field);
+            if (useQualifiedName) {
+                String tableName = Helper.getTableName(clazz);
+                fieldName = tableName + "." + fieldName;
+            }
+
             Object value = TYPES.getOrDefault(
                     field.getType(),
                     ParamGetter::getDefault
@@ -57,23 +79,160 @@ public abstract class SQLExecutor {
             }
         }
 
+        // TODO - Add entity to cache!
+        cache.put(primaryKeyValues, entity);
         return entity;
     }
 
-    public static <T> Result<T> executeQuery(PreparedStatement preparedStatement, Class<T> clazz) throws SQLException, NoSuchMethodException, InstantiationException {
-        ResultSet rs = preparedStatement.executeQuery();
+    private static void mapInnerValue(final ResultSet resultSet,
+                                      final Object instance,
+                                      final String tableName,
+                                      final List<Field> innerFields) throws SQLException {
+        for (Field innerField : innerFields) {
+            String fieldName = tableName + Helper.getFieldName(innerField);
 
-        List<T> entities = new ArrayList<>();
-        while (rs.next()) {
-            T entity = SQLExecutor.createObject(rs, clazz);
-            entities.add(entity);
+            Object value = TYPES.getOrDefault(
+                    innerField.getType(),
+                    ParamGetter::getDefault
+            ).apply(resultSet, fieldName);
+
+            try {
+                innerField.set(instance, value);
+            } catch (IllegalAccessException e) {
+                logger.severe(e.getMessage());
+            }
+        }
+    }
+
+    private static <T> void mapSingleJoin(final Field joinField,
+                                          final ResultSet resultSet,
+                                          final T entity
+    ) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, SQLException {
+        Object instance = joinField.getType().getDeclaredConstructor().newInstance();
+
+        final String tableName = Helper.getTableName(JoinHelper.getJoinClass(joinField));
+
+        final List<Field> innerFields = Arrays.stream(joinField.getType().getDeclaredFields())
+                .filter(field -> field.isAnnotationPresent(lpz.utils.dao.annotations.Field.class)
+                        && field.trySetAccessible()
+                ).toList();
+
+        SQLExecutor.mapInnerValue(resultSet, instance, tableName, innerFields);
+
+        try {
+            joinField.set(entity, instance);
+        } catch (IllegalAccessException e) {
+            logger.severe(e.getMessage());
+        }
+    }
+
+    private static <T> void mapMultiJoin(final Field joinField,
+                                         final ResultSet resultSet,
+                                         final T entity
+    ) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException, InstantiationException, SQLException {
+        Collection<Object> collection = (Collection<Object>) joinField.get(entity);
+        if (collection == null) {
+            collection = new LinkedHashSet<>();
+        } else {
+            collection = new LinkedHashSet<>(collection);
         }
 
-        return Result.of(entities);
+        // TODO - Criar objeto, validar se objeto já existe!
+        Class<?> joinClass = JoinHelper.getJoinClass(joinField);
+
+        String tableName = Helper.getTableName(joinClass) + ".";
+        Object joinEntity = joinClass.getDeclaredConstructor().newInstance();
+        final List<Field> innerFields = Arrays.stream(joinClass.getDeclaredFields())
+                .filter(field -> field.isAnnotationPresent(lpz.utils.dao.annotations.Field.class)
+                        && field.trySetAccessible()
+                ).toList();
+
+        SQLExecutor.mapInnerValue(resultSet, joinEntity, tableName, innerFields);
+
+        List<Object> primaryKeyValues = Arrays.stream(joinClass.getDeclaredFields())
+                .filter(field -> field.isAnnotationPresent(lpz.utils.dao.annotations.Field.class)
+                        && field.getAnnotation(lpz.utils.dao.annotations.Field.class).primaryKey()
+                        && field.trySetAccessible()
+                ).map(field -> {
+                    try {
+                        return field.get(joinEntity);
+                    } catch (IllegalAccessException e) {
+                        logger.severe(e.getMessage());
+                        return null;
+                    }
+                }).toList();
+
+        if (primaryKeyValues.stream().anyMatch(Objects::isNull)) {
+            return;
+        }
+
+        collection.add(joinEntity);
+        try {
+            Collection<Object> coll = switch (joinField.getType().getSimpleName()) {
+                case "Set" -> new LinkedHashSet<>(collection);
+                case "List" -> new ArrayList<>(collection);
+                default ->
+                        throw new IllegalArgumentException("Invalid join type: " + joinField.getType().getSimpleName());
+            };
+            joinField.set(entity, coll);
+        } catch (IllegalAccessException e) {
+            logger.severe(e.getMessage());
+        }
+    }
+
+    private static <T> void mapJoin(final ResultSet resultSet,
+                                    final T entity,
+                                    final List<Class<?>> joinClasses
+    ) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, SQLException {
+        final List<Field> joinFields = Arrays.stream(entity.getClass().getDeclaredFields())
+                .filter(field -> field.isAnnotationPresent(Join.class)
+                        && joinClasses.contains(JoinHelper.getJoinClass(field))
+                        && field.trySetAccessible()
+                ).toList();
+
+        for (Field joinField : joinFields) {
+            if (Collection.class.isAssignableFrom(joinField.getType())) {
+                SQLExecutor.mapMultiJoin(joinField, resultSet, entity);
+            } else {
+                SQLExecutor.mapSingleJoin(joinField, resultSet, entity);
+            }
+        }
+    }
+
+    public static <T> Result<T> executeQuery(final PreparedStatement preparedStatement,
+                                             final Class<T> clazz,
+                                             final List<Class<?>> joinClasses,
+                                             final boolean useQualifiedName
+    ) throws SQLException, NoSuchMethodException, InstantiationException, InvocationTargetException, IllegalAccessException {
+        try (ResultSet rs = preparedStatement.executeQuery()) {
+            final Map<List<Object>, T> cache = new HashMap<>();
+            final List<String> primaryKeys = new ArrayList<>();
+            // TODO - Map primary keys into primaryKeys
+            Arrays.stream(clazz.getDeclaredFields())
+                    .filter(field -> field.isAnnotationPresent(lpz.utils.dao.annotations.Field.class)
+                            && field.getAnnotation(lpz.utils.dao.annotations.Field.class).primaryKey()
+                    ).forEach(field -> {
+                        String fieldName = Helper.getFieldName(field);
+                        if (useQualifiedName) {
+                            String tableName = Helper.getTableName(clazz);
+                            fieldName = tableName + "." + fieldName;
+                        }
+
+                        primaryKeys.add(fieldName);
+                    });
+
+            while (rs.next()) {
+                T entity = SQLExecutor.createObject(primaryKeys, cache, rs, clazz, useQualifiedName);
+                SQLExecutor.mapJoin(rs, entity, joinClasses);
+            }
+
+            List<T> entities = new ArrayList<>(cache.values());
+            return Result.of(entities);
+        }
     }
 
     public static <T> Result<T> executeUpdate(PreparedStatement preparedStatement, Class<T> clazz) throws SQLException, NoSuchMethodException, InstantiationException {
-        int lines =  preparedStatement.executeUpdate();
+        int lines = preparedStatement.executeUpdate();
 
         return Result.of(lines);
     }

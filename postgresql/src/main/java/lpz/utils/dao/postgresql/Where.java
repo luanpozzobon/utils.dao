@@ -2,6 +2,7 @@ package lpz.utils.dao.postgresql;
 
 import lpz.utils.dao.IOperation;
 import lpz.utils.dao.WhereBuilder;
+import lpz.utils.dao.enums.WhereAppender;
 import lpz.utils.dao.helpers.Helper;
 
 import java.util.List;
@@ -13,9 +14,12 @@ public class Where<T extends IOperation> implements WhereBuilder<T> {
     private final String field;
     private final T operation;
     private final StringBuilder clause;
+    private final WhereAppender appender;
 
-    protected Where(final String field,
+    protected Where(final WhereAppender appender,
+                    final String field,
                     final T operation) {
+        this.appender = appender;
         this.field = field;
         this.operation = operation;
         this.clause = new StringBuilder();
@@ -26,7 +30,7 @@ public class Where<T extends IOperation> implements WhereBuilder<T> {
         lpz.utils.dao.postgresql.helper.Helper.addParam(this.clause, value.getClass());
         this.clause.append(" ");
 
-        this.operation.where(clause.toString(), value);
+        this.operation.where(appender, clause.toString(), value);
 
         return operation;
     }
@@ -36,7 +40,7 @@ public class Where<T extends IOperation> implements WhereBuilder<T> {
         lpz.utils.dao.postgresql.helper.Helper.addParam(this.clause, value.getClass());
         this.clause.append(" ");
 
-        this.operation.where(clause.toString(), value);
+        this.operation.where(appender, clause.toString(), value);
 
         return operation;
     }
@@ -46,7 +50,7 @@ public class Where<T extends IOperation> implements WhereBuilder<T> {
         lpz.utils.dao.postgresql.helper.Helper.addParam(this.clause, value.getClass());
         this.clause.append(" ");
 
-        this.operation.where(clause.toString(), value);
+        this.operation.where(appender, clause.toString(), value);
 
         return operation;
     }
@@ -56,7 +60,7 @@ public class Where<T extends IOperation> implements WhereBuilder<T> {
         lpz.utils.dao.postgresql.helper.Helper.addParam(this.clause, value.getClass());
         this.clause.append(" ");
 
-        this.operation.where(clause.toString(), value);
+        this.operation.where(appender, clause.toString(), value);
 
         return operation;
     }
@@ -66,7 +70,7 @@ public class Where<T extends IOperation> implements WhereBuilder<T> {
         lpz.utils.dao.postgresql.helper.Helper.addParam(this.clause, value.getClass());
         this.clause.append(" ");
 
-        this.operation.where(clause.toString(), value);
+        this.operation.where(appender, clause.toString(), value);
 
         return operation;
     }
@@ -76,7 +80,7 @@ public class Where<T extends IOperation> implements WhereBuilder<T> {
         lpz.utils.dao.postgresql.helper.Helper.addParam(this.clause, value.getClass());
         this.clause.append(" ");
 
-        this.operation.where(clause.toString(), value);
+        this.operation.where(appender, clause.toString(), value);
 
         return operation;
     }
@@ -86,7 +90,7 @@ public class Where<T extends IOperation> implements WhereBuilder<T> {
         lpz.utils.dao.postgresql.helper.Helper.addParam(this.clause, value.getClass());
         this.clause.append(CLOSING_WILDCARD);
 
-        this.operation.where(clause.toString(), value);
+        this.operation.where(appender, clause.toString(), value);
 
         return operation;
     }
@@ -96,7 +100,7 @@ public class Where<T extends IOperation> implements WhereBuilder<T> {
         lpz.utils.dao.postgresql.helper.Helper.addParam(this.clause, value.getClass());
         this.clause.append(CLOSING_WILDCARD);
 
-        this.operation.where(clause.toString(), value);
+        this.operation.where(appender, clause.toString(), value);
 
         return operation;
     }
@@ -106,7 +110,7 @@ public class Where<T extends IOperation> implements WhereBuilder<T> {
         lpz.utils.dao.postgresql.helper.Helper.addParam(this.clause, value.getClass());
         this.clause.append(CLOSING_WILDCARD);
 
-        this.operation.where(clause.toString(), value);
+        this.operation.where(appender, clause.toString(), value);
 
         return operation;
     }
@@ -119,7 +123,7 @@ public class Where<T extends IOperation> implements WhereBuilder<T> {
         });
 
         Helper.replaceFromLast(",", ") ", this.clause);
-        this.operation.where(clause.toString(), values.toArray());
+        this.operation.where(appender, clause.toString(), values.toArray());
 
         return operation;
     }
