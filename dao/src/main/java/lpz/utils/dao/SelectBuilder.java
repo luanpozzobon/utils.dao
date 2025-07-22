@@ -12,7 +12,32 @@ import java.sql.SQLException;
  * @since 1.0.0
  */
 public interface SelectBuilder<T> extends IOperation {
+    /**
+     *
+     * @param field
+     *
+     *
+     * @since 1.0.0
+     */
     WhereBuilder<SelectBuilder<T>> where(final String field);
+
+    /**
+     *
+     * @param field
+     *
+     *
+     * @since 2.0.0
+     */
+    WhereBuilder<SelectBuilder<T>> and(final String field);
+
+    /**
+     *
+     * @param field
+     *
+     *
+     * @since 2.0.0
+     */
+    WhereBuilder<SelectBuilder<T>> or(final String field);
 
     Result<T> execute() throws SQLException;
 

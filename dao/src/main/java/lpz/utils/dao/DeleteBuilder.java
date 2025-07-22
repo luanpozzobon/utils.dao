@@ -13,7 +13,32 @@ import java.sql.SQLException;
  */
 public interface DeleteBuilder<T> extends IOperation {
 
+    /**
+     *
+     * @param field
+     *
+     *
+     * @since 1.0.0
+     */
     WhereBuilder<DeleteBuilder<T>> where(final String field);
+
+    /**
+     *
+     * @param field
+     *
+     *
+     * @since 2.0.0
+     */
+    WhereBuilder<DeleteBuilder<T>> and(final String field);
+
+    /**
+     *
+     * @param field
+     *
+     *
+     * @since 2.0.0
+     */
+    WhereBuilder<DeleteBuilder<T>> or(final String field);
 
     Result<T> execute() throws NullPointerException, SQLException;
 

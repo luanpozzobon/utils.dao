@@ -1,5 +1,9 @@
 package lpz.utils.dao;
 
+import lpz.utils.dao.enums.WhereAppender;
+
 public interface IOperation {
-    IOperation where(String clause, Object... values);
+    IOperation where(WhereAppender appender,
+                     final String clause,
+                     final Object... values);
 }

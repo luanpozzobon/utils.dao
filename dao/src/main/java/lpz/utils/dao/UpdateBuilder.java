@@ -13,7 +13,31 @@ import java.util.List;
  * @since 1.0.0
  */
 public interface UpdateBuilder<T> extends IOperation {
+    /**
+     *
+     * @param field
+     *
+     * @since 1.0.0
+     */
     WhereBuilder<UpdateBuilder<T>> where(final String field);
+
+    /**
+     *
+     * @param field
+     *
+     *
+     * @since 2.0.0
+     */
+    WhereBuilder<UpdateBuilder<T>> and(final String field);
+
+    /**
+     *
+     * @param field
+     *
+     *
+     * @since 2.0.0
+     */
+    WhereBuilder<UpdateBuilder<T>> or(final String field);
 
     Result<T> execute(final T entity) throws SQLException;
 
