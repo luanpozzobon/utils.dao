@@ -1,5 +1,6 @@
 package lpz.utils.dao.postgresql;
 
+import lpz.utils.dao.enums.WhereAppender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -15,7 +16,7 @@ class WhereTest {
 
     @BeforeEach
     void setUp() {
-        this.where = new Where<>("id", new Select<>(TestEntity.class, null));
+        this.where = new Where<>(WhereAppender.WHERE, "id", new Select<>(TestEntity.class, null));
     }
 
     @Test

@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class InsertTest {
     private static final String BASE_SQL = "INSERT INTO public.test (id, field1, field2, field3, field4, field5, " +
-            "field6, field7, field8, field9) ";
+            "field6, field7, field8, field9, entity_id) ";
 
     @Test
     void shouldAssembleBaseSQL() {

@@ -5,6 +5,7 @@ import lpz.utils.dao.annotations.Table;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Objects;
 import java.util.UUID;
 
 @Table(name = "test")
@@ -38,6 +39,9 @@ public class TestEntity {
 
     @Field
     private LocalDate field9;
+
+    @Field
+    private String entityId;
 
     public TestEntity() {
     }
@@ -133,5 +137,25 @@ public class TestEntity {
 
     public void setField9(LocalDate field9) {
         this.field9 = field9;
+    }
+
+    public String getEntityId() {
+        return entityId;
+    }
+
+    public void setEntityId(String entityId) {
+        this.entityId = entityId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        TestEntity that = (TestEntity) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 }
