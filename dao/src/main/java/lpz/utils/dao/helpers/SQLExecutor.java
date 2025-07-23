@@ -63,8 +63,7 @@ public abstract class SQLExecutor {
         for (var field : fields) {
             String fieldName = Helper.getFieldName(field);
             if (useQualifiedName) {
-                String tableName = Helper.getTableName(clazz);
-                fieldName = tableName + "." + fieldName;
+                fieldName = Helper.getQualifiedName(clazz, field);
             }
 
             Object value = TYPES.getOrDefault(
@@ -86,10 +85,9 @@ public abstract class SQLExecutor {
 
     private static void mapInnerValue(final ResultSet resultSet,
                                       final Object instance,
-                                      final String tableName,
                                       final List<Field> innerFields) throws SQLException {
         for (Field innerField : innerFields) {
-            String fieldName = tableName + Helper.getFieldName(innerField);
+            String fieldName = Helper.getQualifiedName(instance.getClass(), innerField);
 
             Object value = TYPES.getOrDefault(
                     innerField.getType(),
@@ -110,14 +108,12 @@ public abstract class SQLExecutor {
     ) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, SQLException {
         Object instance = joinField.getType().getDeclaredConstructor().newInstance();
 
-        final String tableName = Helper.getTableName(JoinHelper.getJoinClass(joinField));
-
         final List<Field> innerFields = Arrays.stream(joinField.getType().getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(lpz.utils.dao.annotations.Field.class)
                         && field.trySetAccessible()
                 ).toList();
 
-        SQLExecutor.mapInnerValue(resultSet, instance, tableName, innerFields);
+        SQLExecutor.mapInnerValue(resultSet, instance, innerFields);
 
         try {
             joinField.set(entity, instance);
@@ -140,14 +136,13 @@ public abstract class SQLExecutor {
         // TODO - Criar objeto, validar se objeto já existe!
         Class<?> joinClass = JoinHelper.getJoinClass(joinField);
 
-        String tableName = Helper.getTableName(joinClass) + ".";
         Object joinEntity = joinClass.getDeclaredConstructor().newInstance();
         final List<Field> innerFields = Arrays.stream(joinClass.getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(lpz.utils.dao.annotations.Field.class)
                         && field.trySetAccessible()
                 ).toList();
 
-        SQLExecutor.mapInnerValue(resultSet, joinEntity, tableName, innerFields);
+        SQLExecutor.mapInnerValue(resultSet, joinEntity, innerFields);
 
         List<Object> primaryKeyValues = Arrays.stream(joinClass.getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(lpz.utils.dao.annotations.Field.class)
@@ -169,7 +164,7 @@ public abstract class SQLExecutor {
         collection.add(joinEntity);
         try {
             Collection<Object> coll = switch (joinField.getType().getSimpleName()) {
-                case "Set" -> new LinkedHashSet<>(collection);
+                case "Set" -> collection;
                 case "List" -> new ArrayList<>(collection);
                 default ->
                         throw new IllegalArgumentException("Invalid join type: " + joinField.getType().getSimpleName());
@@ -214,8 +209,7 @@ public abstract class SQLExecutor {
                     ).forEach(field -> {
                         String fieldName = Helper.getFieldName(field);
                         if (useQualifiedName) {
-                            String tableName = Helper.getTableName(clazz);
-                            fieldName = tableName + "." + fieldName;
+                            fieldName = Helper.getQualifiedName(clazz, field);
                         }
 
                         primaryKeys.add(fieldName);

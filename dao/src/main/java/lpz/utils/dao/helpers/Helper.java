@@ -29,4 +29,9 @@ public abstract class Helper {
     public static void replaceFromLast(final String target, final String replacement, final StringBuilder sql) {
         sql.replace(sql.lastIndexOf(target), sql.length(), replacement);
     }
+
+    public static <T> String getQualifiedName(final Class<T> clazz,
+                                              final Field field) {
+        return getTableName(clazz) + "." + getFieldName(field);
+    }
 }
