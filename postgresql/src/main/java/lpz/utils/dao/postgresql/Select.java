@@ -152,8 +152,7 @@ public final class Select<T> extends Operation implements SelectBuilder<T> {
     private void join(final String join, final String field) {
         Field[] fields = Arrays.stream(this.clazz.getDeclaredFields())
                 .filter(f -> f.isAnnotationPresent(Join.class)
-                        && (Helper.getFieldName(f).equals(field)
-                        || f.getName().equals(field))
+                        && f.getName().equals(field)
                 ).toArray(Field[]::new);
 
         this.join(join, fields);

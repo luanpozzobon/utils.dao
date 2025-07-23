@@ -202,4 +202,67 @@ class SelectIntegrationTest {
             assertEquals(entity.getId(), e.getEntityId());
         }
     }
+
+    @Test
+    void shouldSelectWithLeftJoinWithParameters() {
+        Select<TestEntity2> select = new Select<>(TestEntity2.class, connection)
+                .leftJoin("entity");
+
+        Result<TestEntity2> result = assertDoesNotThrow(select::execute);
+
+        assertNotNull(result);
+        assertEquals(1, result.lines());
+
+        TestEntity2 entity = result.entities().getFirst();
+        assertNotNull(entity.getId());
+        assertEquals(FIELD1, entity.getField1());
+
+        assertNotNull(entity.getEntity());
+        for (TestEntity e : entity.getEntity()) {
+            assertNotNull(e.getId());
+            assertEquals(entity.getId(), e.getEntityId());
+        }
+    }
+
+    @Test
+    void shouldSelectWithInnerJoin() {
+        Select<TestEntity2> select = new Select<>(TestEntity2.class, connection)
+                .innerJoin();
+
+        Result<TestEntity2> result = assertDoesNotThrow(select::execute);
+
+        assertNotNull(result);
+        assertEquals(1, result.lines());
+
+        TestEntity2 entity = result.entities().getFirst();
+        assertNotNull(entity.getId());
+        assertEquals(FIELD1, entity.getField1());
+
+        assertNotNull(entity.getEntity());
+        for (TestEntity e : entity.getEntity()) {
+            assertNotNull(e.getId());
+            assertEquals(entity.getId(), e.getEntityId());
+        }
+    }
+
+    @Test
+    void shouldSelectWithInnerJoinWithParameters() {
+        Select<TestEntity2> select = new Select<>(TestEntity2.class, connection)
+                .innerJoin("entity");
+
+        Result<TestEntity2> result = assertDoesNotThrow(select::execute);
+
+        assertNotNull(result);
+        assertEquals(1, result.lines());
+
+        TestEntity2 entity = result.entities().getFirst();
+        assertNotNull(entity.getId());
+        assertEquals(FIELD1, entity.getField1());
+
+        assertNotNull(entity.getEntity());
+        for (TestEntity e : entity.getEntity()) {
+            assertNotNull(e.getId());
+            assertEquals(entity.getId(), e.getEntityId());
+        }
+    }
 }
