@@ -23,11 +23,52 @@ class UpdateTest {
     @Test
     void shouldAssembleSQLWithWhere() {
         final UUID id = UUID.randomUUID();
+        final String expected = "WHERE id = ?::uuid ";
+
+        final UpdateBuilder<TestEntity> update = new Update<>(TestEntity.class, null)
+                .where("id").equal(id);
+
+        assertEquals(BASE_SQL, ((Update<TestEntity>) update).getSQL());
+
+        assertNotNull(((Update<TestEntity>) update).where);
+        assertEquals(expected, ((Update<TestEntity>) update).where.toString());
+    }
+
+    @Test
+    void shouldAssembleSQLWithMultipleWhere() {
         final String expected = "WHERE id = ?::uuid AND field1 = ?::varchar ";
 
         final UpdateBuilder<TestEntity> update = new Update<>(TestEntity.class, null)
-                .where("id").equal(id)
-                .where("field1").equal("field1");
+                .where("id").equal(UUID.randomUUID())
+                .where("field1").equal("test");
+
+        assertEquals(BASE_SQL, ((Update<TestEntity>) update).getSQL());
+
+        assertNotNull(((Update<TestEntity>) update).where);
+        assertEquals(expected, ((Update<TestEntity>) update).where.toString());
+    }
+
+    @Test
+    void shouldAssembleSQLWithWhereAnd() {
+        final String expected = "WHERE id = ?::uuid AND field1 = ?::varchar ";
+
+        final UpdateBuilder<TestEntity> update = new Update<>(TestEntity.class, null)
+                .where("id").equal(UUID.randomUUID())
+                .and("field1").equal("test");
+
+        assertEquals(BASE_SQL, ((Update<TestEntity>) update).getSQL());
+
+        assertNotNull(((Update<TestEntity>) update).where);
+        assertEquals(expected, ((Update<TestEntity>) update).where.toString());
+    }
+
+    @Test
+    void shouldAssembleSQLWithWhereOr() {
+        final String expected = "WHERE id = ?::uuid OR field1 = ?::varchar ";
+
+        final UpdateBuilder<TestEntity> update = new Update<>(TestEntity.class, null)
+                .where("id").equal(UUID.randomUUID())
+                .or("field1").equal("test");
 
         assertEquals(BASE_SQL, ((Update<TestEntity>) update).getSQL());
 

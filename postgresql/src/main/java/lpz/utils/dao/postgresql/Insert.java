@@ -7,6 +7,7 @@ import lpz.utils.dao.helpers.SQLExecutor;
 import lpz.utils.dao.helpers.SQLStatement;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -100,10 +101,10 @@ public final class Insert<T> extends Operation implements InsertBuilder<T> {
             if (!this.returning) {
                 return SQLExecutor.executeUpdate(preparedStatement, this.clazz);
             } else {
-                return SQLExecutor.executeQuery(preparedStatement, this.clazz);
+                return SQLExecutor.executeQuery(preparedStatement, this.clazz, Collections.emptyList(), false);
             }
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException("You must have a 'No-Args' constructor declared in your entity");
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            throw new RuntimeException("You must have a public 'No-Args' constructor declared in your entity");
         } catch (InstantiationException e) {
             throw new RuntimeException("Your entity must be instantiable");
         }
@@ -126,10 +127,10 @@ public final class Insert<T> extends Operation implements InsertBuilder<T> {
             if (this.sql.indexOf("RETURNING") == -1) {
                 return SQLExecutor.executeUpdate(preparedStatement, this.clazz);
             } else {
-                return SQLExecutor.executeQuery(preparedStatement, this.clazz);
+                return SQLExecutor.executeQuery(preparedStatement, this.clazz, Collections.emptyList(), false);
             }
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException("You must have a 'No-Args' constructor declared in your entity");
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            throw new RuntimeException("You must have a public 'No-Args' constructor declared in your entity");
         } catch (InstantiationException e) {
             throw new RuntimeException("Your entity must be instantiable");
         }

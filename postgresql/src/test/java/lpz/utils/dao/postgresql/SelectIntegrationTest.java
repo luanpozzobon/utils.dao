@@ -51,9 +51,16 @@ class SelectIntegrationTest {
 
         try {
             connection = DriverManager.getConnection(jdbcUrl, username, password);
+            final String entityId = String.valueOf(UUID.randomUUID());
+            final TestEntity2 e2 = new TestEntity2(entityId, FIELD1);
+
+            new CRUDBuilderFactory(connection).insert(TestEntity2.class)
+                    .execute(e2);
+
             for (int i = 0; i < 100; i++) {
                 final UUID id = UUID.randomUUID();
                 final TestEntity e = new TestEntity(id, FIELD1, FIELD2, FIELD3, FIELD4, FIELD5, FIELD6, FIELD7, FIELD8, FIELD9);
+                e.setEntityId(entityId);
 
                 new CRUDBuilderFactory(connection).insert(TestEntity.class)
                         .execute(e);
@@ -173,5 +180,89 @@ class SelectIntegrationTest {
 
         assertNotNull(result);
         assertEquals(50, result.lines());
+    }
+
+    @Test
+    void shouldSelectWithLeftJoin() {
+        Select<TestEntity2> select = new Select<>(TestEntity2.class, connection)
+                .leftJoin();
+
+        Result<TestEntity2> result = assertDoesNotThrow(select::execute);
+
+        assertNotNull(result);
+        assertEquals(1, result.lines());
+
+        TestEntity2 entity = result.entities().getFirst();
+        assertNotNull(entity.getId());
+        assertEquals(FIELD1, entity.getField1());
+
+        assertNotNull(entity.getEntity());
+        for (TestEntity e : entity.getEntity()) {
+            assertNotNull(e.getId());
+            assertEquals(entity.getId(), e.getEntityId());
+        }
+    }
+
+    @Test
+    void shouldSelectWithLeftJoinWithParameters() {
+        Select<TestEntity2> select = new Select<>(TestEntity2.class, connection)
+                .leftJoin("entity");
+
+        Result<TestEntity2> result = assertDoesNotThrow(select::execute);
+
+        assertNotNull(result);
+        assertEquals(1, result.lines());
+
+        TestEntity2 entity = result.entities().getFirst();
+        assertNotNull(entity.getId());
+        assertEquals(FIELD1, entity.getField1());
+
+        assertNotNull(entity.getEntity());
+        for (TestEntity e : entity.getEntity()) {
+            assertNotNull(e.getId());
+            assertEquals(entity.getId(), e.getEntityId());
+        }
+    }
+
+    @Test
+    void shouldSelectWithInnerJoin() {
+        Select<TestEntity2> select = new Select<>(TestEntity2.class, connection)
+                .innerJoin();
+
+        Result<TestEntity2> result = assertDoesNotThrow(select::execute);
+
+        assertNotNull(result);
+        assertEquals(1, result.lines());
+
+        TestEntity2 entity = result.entities().getFirst();
+        assertNotNull(entity.getId());
+        assertEquals(FIELD1, entity.getField1());
+
+        assertNotNull(entity.getEntity());
+        for (TestEntity e : entity.getEntity()) {
+            assertNotNull(e.getId());
+            assertEquals(entity.getId(), e.getEntityId());
+        }
+    }
+
+    @Test
+    void shouldSelectWithInnerJoinWithParameters() {
+        Select<TestEntity2> select = new Select<>(TestEntity2.class, connection)
+                .innerJoin("entity");
+
+        Result<TestEntity2> result = assertDoesNotThrow(select::execute);
+
+        assertNotNull(result);
+        assertEquals(1, result.lines());
+
+        TestEntity2 entity = result.entities().getFirst();
+        assertNotNull(entity.getId());
+        assertEquals(FIELD1, entity.getField1());
+
+        assertNotNull(entity.getEntity());
+        for (TestEntity e : entity.getEntity()) {
+            assertNotNull(e.getId());
+            assertEquals(entity.getId(), e.getEntityId());
+        }
     }
 }

@@ -3,6 +3,7 @@ package lpz.utils.dao.postgresql;
 import lpz.utils.dao.Result;
 import lpz.utils.dao.UpdateBuilder;
 import lpz.utils.dao.WhereBuilder;
+import lpz.utils.dao.enums.WhereAppender;
 import lpz.utils.dao.helpers.Helper;
 import lpz.utils.dao.helpers.SQLExecutor;
 import lpz.utils.dao.helpers.SQLStatement;
@@ -40,7 +41,15 @@ public final class Update<T> extends Operation implements UpdateBuilder<T> {
 
     @Override
     public WhereBuilder<UpdateBuilder<T>> where(final String field) {
-        return new Where<>(field, this);
+        return new Where<>(WhereAppender.WHERE, field, this);
+    }
+
+    public WhereBuilder<UpdateBuilder<T>> and(final String field) {
+        return new Where<>(WhereAppender.AND, field, this);
+    }
+
+    public WhereBuilder<UpdateBuilder<T>> or(final String field) {
+        return new Where<>(WhereAppender.OR, field, this);
     }
 
     private void where(final T entity) {

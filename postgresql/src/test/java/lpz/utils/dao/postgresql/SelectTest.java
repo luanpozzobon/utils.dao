@@ -9,9 +9,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class SelectTest {
     private static final String BASE_SQL =
-            "SELECT public.test.id, public.test.field1, public.test.field2, public.test.field3, public.test.field4, " +
-                    "public.test.field5, public.test.field6, public.test.field7, public.test.field8, public.test.field9 " +
-                    "FROM public.test ";
+            "SELECT public.test.id AS \"public.test.id\", public.test.field1 AS \"public.test.field1\", " +
+                    "public.test.field2 AS \"public.test.field2\", public.test.field3 AS \"public.test.field3\", " +
+                    "public.test.field4 AS \"public.test.field4\", public.test.field5 AS \"public.test.field5\", " +
+                    "public.test.field6 AS \"public.test.field6\", public.test.field7 AS \"public.test.field7\", " +
+                    "public.test.field8 AS \"public.test.field8\", public.test.field9 AS \"public.test.field9\", " +
+                    "public.test.entity_id AS \"public.test.entity_id\", ";
 
     @Test
     void shouldAssembleBaseSQL() {
@@ -29,6 +32,48 @@ class SelectTest {
 
         final SelectBuilder<TestEntity> select = new Select<>(TestEntity.class, null)
                 .where("id").equal(UUID.randomUUID());
+
+        assertEquals(BASE_SQL, ((Select<TestEntity>) select).getSQL());
+
+        assertNotNull(((Select<TestEntity>) select).where);
+        assertEquals(expected, ((Select<TestEntity>) select).where.toString());
+    }
+
+    @Test
+    void shouldAssembleSQLWithMultipleWhere() {
+        final String expected = "WHERE id = ?::uuid AND field1 = ?::varchar ";
+
+        final SelectBuilder<TestEntity> select = new Select<>(TestEntity.class, null)
+                .where("id").equal(UUID.randomUUID())
+                .where("field1").equal("test");
+
+        assertEquals(BASE_SQL, ((Select<TestEntity>) select).getSQL());
+
+        assertNotNull(((Select<TestEntity>) select).where);
+        assertEquals(expected, ((Select<TestEntity>) select).where.toString());
+    }
+
+    @Test
+    void shouldAssembleSQLWithWhereAnd() {
+        final String expected = "WHERE id = ?::uuid AND field1 = ?::varchar ";
+
+        final SelectBuilder<TestEntity> select = new Select<>(TestEntity.class, null)
+                .where("id").equal(UUID.randomUUID())
+                .and("field1").equal("test");
+
+        assertEquals(BASE_SQL, ((Select<TestEntity>) select).getSQL());
+
+        assertNotNull(((Select<TestEntity>) select).where);
+        assertEquals(expected, ((Select<TestEntity>) select).where.toString());
+    }
+
+    @Test
+    void shouldAssembleSQLWithWhereOr() {
+        final String expected = "WHERE id = ?::uuid OR field1 = ?::varchar ";
+
+        final SelectBuilder<TestEntity> select = new Select<>(TestEntity.class, null)
+                .where("id").equal(UUID.randomUUID())
+                .or("field1").equal("test");
 
         assertEquals(BASE_SQL, ((Select<TestEntity>) select).getSQL());
 
