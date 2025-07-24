@@ -34,4 +34,46 @@ class DeleteTest {
         assertNotNull(((Delete<TestEntity>) delete).where);
         assertEquals(expected, ((Delete<TestEntity>) delete).where.toString());
     }
+
+    @Test
+    void shouldAssembleSQLWithMultipleWhere() {
+        final String expected = "WHERE id = ?::uuid AND field1 = ?::varchar ";
+
+        final DeleteBuilder<TestEntity> delete = new Delete<>(TestEntity.class, null)
+                .where("id").equal(UUID.randomUUID())
+                .where("field1").equal("test");
+
+        assertEquals(BASE_SQL, ((Delete<TestEntity>) delete).getSQL());
+
+        assertNotNull(((Delete<TestEntity>) delete).where);
+        assertEquals(expected, ((Delete<TestEntity>) delete).where.toString());
+    }
+
+    @Test
+    void shouldAssembleSQLWithWhereAnd() {
+        final String expected = "WHERE id = ?::uuid AND field1 = ?::varchar ";
+
+        final DeleteBuilder<TestEntity> delete = new Delete<>(TestEntity.class, null)
+                .where("id").equal(UUID.randomUUID())
+                .and("field1").equal("test");
+
+        assertEquals(BASE_SQL, ((Delete<TestEntity>) delete).getSQL());
+
+        assertNotNull(((Delete<TestEntity>) delete).where);
+        assertEquals(expected, ((Delete<TestEntity>) delete).where.toString());
+    }
+
+    @Test
+    void shouldAssembleSQLWithWhereOr() {
+        final String expected = "WHERE id = ?::uuid OR field1 = ?::varchar ";
+
+        final DeleteBuilder<TestEntity> delete = new Delete<>(TestEntity.class, null)
+                .where("id").equal(UUID.randomUUID())
+                .or("field1").equal("test");
+
+        assertEquals(BASE_SQL, ((Delete<TestEntity>) delete).getSQL());
+
+        assertNotNull(((Delete<TestEntity>) delete).where);
+        assertEquals(expected, ((Delete<TestEntity>) delete).where.toString());
+    }
 }

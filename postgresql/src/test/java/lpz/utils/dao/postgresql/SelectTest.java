@@ -40,6 +40,48 @@ class SelectTest {
     }
 
     @Test
+    void shouldAssembleSQLWithMultipleWhere() {
+        final String expected = "WHERE id = ?::uuid AND field1 = ?::varchar ";
+
+        final SelectBuilder<TestEntity> select = new Select<>(TestEntity.class, null)
+                .where("id").equal(UUID.randomUUID())
+                .where("field1").equal("test");
+
+        assertEquals(BASE_SQL, ((Select<TestEntity>) select).getSQL());
+
+        assertNotNull(((Select<TestEntity>) select).where);
+        assertEquals(expected, ((Select<TestEntity>) select).where.toString());
+    }
+
+    @Test
+    void shouldAssembleSQLWithWhereAnd() {
+        final String expected = "WHERE id = ?::uuid AND field1 = ?::varchar ";
+
+        final SelectBuilder<TestEntity> select = new Select<>(TestEntity.class, null)
+                .where("id").equal(UUID.randomUUID())
+                .and("field1").equal("test");
+
+        assertEquals(BASE_SQL, ((Select<TestEntity>) select).getSQL());
+
+        assertNotNull(((Select<TestEntity>) select).where);
+        assertEquals(expected, ((Select<TestEntity>) select).where.toString());
+    }
+
+    @Test
+    void shouldAssembleSQLWithWhereOr() {
+        final String expected = "WHERE id = ?::uuid OR field1 = ?::varchar ";
+
+        final SelectBuilder<TestEntity> select = new Select<>(TestEntity.class, null)
+                .where("id").equal(UUID.randomUUID())
+                .or("field1").equal("test");
+
+        assertEquals(BASE_SQL, ((Select<TestEntity>) select).getSQL());
+
+        assertNotNull(((Select<TestEntity>) select).where);
+        assertEquals(expected, ((Select<TestEntity>) select).where.toString());
+    }
+
+    @Test
     void shouldAssembleSQLWithLimit() {
         final int limit = 20;
 
